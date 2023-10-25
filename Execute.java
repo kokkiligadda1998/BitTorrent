@@ -26,7 +26,6 @@ public class Execute implements Runnable{
 			this.peerState.setFileSplitMap(new ConcurrentHashMap<>());
 		}
 		System.out.println("Peer ID :"+ peerState.getPeerId());
-		ReadConfigFiles.showConfiguration();
 		System.out.println(peerState);
 
 		// accept incoming connections

@@ -112,22 +112,6 @@ public class ReadConfigFiles {
 		}
 	}
 
-	public static void showConfiguration() {
-		System.out.println( "PeerProperties [numberOfPreferredNeighbors="
-				+ numberOfPreferredNeighbors
-				+ ", unchokingInterval="
-				+ unchokingInterval
-				+ ", optimisticUnchokingInterval="
-				+ optimisticUnchokingInterval
-				+ ", fileName="
-				+ fileName
-				+ ", fileSize="
-				+ fileSize
-				+ ", pieceSize="
-				+ pieceSize
-				+ "]");
-	}
-
 	public static void setStateFromConfigFiles() {
 
 		Properties properties = new Properties();
