@@ -2,39 +2,51 @@ import java.util.*;
 
 public class OptimisticUnchokingScheduler extends TimerTask {
 
-    private PeerInfo currentPeerState;
+    private PeerInfo peerCondition;// Reference to the peer's information.
 
-    public OptimisticUnchokingScheduler(PeerInfo currentPeerState) {
-        this.currentPeerState = currentPeerState;
+    // Constructor to initialize the scheduler with peer information.
+
+    public OptimisticUnchokingScheduler(PeerInfo peerCondition) {
+        this.peerCondition = peerCondition;
     }
 
     @Override
     public void run() {
-        System.out.println("OptimisticUnchokingTask: start");
+        System.out.println("checking the status for Task: start");
 
-        if (currentPeerState.getInterestedNeighbours().isEmpty()) {
-            System.out.println("OptimisticUnchokingTask: No interested neighbors for " + this.currentPeerState.getPeerId());
+        // Check if there are no interested peers.
+        if (peerCondition.getInterestedNeighbours().isEmpty()) {
+            System.out.println("checking the status for Task: No interested peers for " + this.peerCondition.getPeerId());
             return;
         }
 
         List<String> chokedNeighbours = new ArrayList<>();
 
-        for (String peerId: currentPeerState.getInterestedNeighbours().values()) {
-            if (peerId.equals(currentPeerState.getPeerId())) {
+         // Iterate through interested peers to find choked neighbors.
+
+        for (String peerId: peerCondition.getInterestedNeighbours().values()) {
+            // Skip the current peer.
+            if (peerId.equals(peerCondition.getPeerId())) {
                 continue;
             }
-            if (!currentPeerState.getPreferredNeighbours().containsKey(peerId)) {
+            // Check if the peer is not a preferred neighbor (choked).
+            if (!peerCondition.getPreferredNeighbours().containsKey(peerId)) {
                 chokedNeighbours.add(peerId);
             }
         }
+        // If there are no choked neighbors, exit.
         if (chokedNeighbours.isEmpty()) {
-            System.out.println("OptimisticUnchokingTask: No choked neighbors!");
+            System.out.println("checking the status for Task: found no choked neighbors!!!");
             return;
         }
+        // Randomly select one choked neighbor as the optimistic unchoked neighbor.
+       
         Collections.shuffle(chokedNeighbours);
         String optimisticUnchokedPeerId = chokedNeighbours.get(0);
-        currentPeerState.setOptimisticUnchokedPeerId(optimisticUnchokedPeerId);
-        currentPeerState.getConnections().get(optimisticUnchokedPeerId).sendMessage(new UnchokeMessage());
-        Logger.getLogger(currentPeerState.getPeerId()).logNewOptimisticallyUnchokedNeighbor(optimisticUnchokedPeerId);
+         // Set the optimistic unchoked neighbor and send an unchoke message.      
+        peerCondition.setOptimisticUnchokedPeerId(optimisticUnchokedPeerId);
+        peerCondition.getConnections().get(optimisticUnchokedPeerId).sendMessage(new UnchokeMessage());
+         // Log the selection of the new optimistically unchoked neighbor.
+        Logger.getLogger(peerCondition.getPeerId()).logNewOptimisticallyUnchokedNeighbor(optimisticUnchokedPeerId);
     }
 }

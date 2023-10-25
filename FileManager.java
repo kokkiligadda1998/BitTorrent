@@ -8,77 +8,76 @@ import java.util.concurrent.*;
 
 public class FileManager {
 
-	public static ConcurrentHashMap<Integer, byte[]> splitFile() {
-		File file = new File(System.getProperty("user.dir") + File.separatorChar + ReadConfigFiles.fileName);
-		FileInputStream fileInputStream = null;
-		DataInputStream dataInputStream = null;
-		try {
-			fileInputStream = new FileInputStream(file);
-			dataInputStream = new DataInputStream(fileInputStream);
+    // Split a file into pieces and store them in a ConcurrentHashMap
+    public static ConcurrentHashMap<Integer, byte[]> splitFile() {
+        File file = new File(System.getProperty("user.dir") + File.separatorChar + ReadConfigFiles.fName);
+        FileInputStream fileIS = null;
+        DataInputStream dataIS = null;
+        try {
+            fileIS = new FileInputStream(file);
+            dataIS = new DataInputStream(fileIS);
 
-			int numberOfPieces = ReadConfigFiles.getNumberOfPieces();
-			ConcurrentHashMap<Integer, byte[]> fileSplitMap = new ConcurrentHashMap<>();
+            int noOfPieces = ReadConfigFiles.getNumberOfPieces();
+            ConcurrentHashMap<Integer, byte[]> fileSM = new ConcurrentHashMap<>();
 
-			for (int i = 0; i < numberOfPieces; i++) {
-				int pieceSize = i != numberOfPieces - 1 ? ReadConfigFiles.getPieceSize()
-						: (int) (ReadConfigFiles.getFileSize() % ReadConfigFiles.getPieceSize());
-				byte[] piece = new byte[pieceSize];
-				dataInputStream.readFully(piece);
-				fileSplitMap.put(i, piece);
-			}
-			return fileSplitMap;
+            for (int i = 0; i < noOfPieces; i++) {
+                int pieceSize = i != noOfPieces - 1 ? ReadConfigFiles.getPieceSize()
+                        : (int) (ReadConfigFiles.getFileSize() % ReadConfigFiles.getPieceSize());
+                byte[] piece = new byte[pieceSize];
+                dataIS.readFully(piece);
+                fileSM.put(i, piece);
+            }
+            return fileSM;
 
-		}
-		catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				fileInputStream.close();
-				dataInputStream.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-		return null;
-	}
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                fileIS.close();
+                dataIS.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return null;
+    }
 
-	public static void joinPiecesAndWriteFile(PeerInfo peerState) {
-		String fileNameWithPath = System.getProperty("user.dir") + File.separatorChar + "btorrent/peer_" + peerState.getPeerId()
-				+ File.separatorChar + ReadConfigFiles.fileName;
-		System.out.println("Joining pieces and writing to file " + fileNameWithPath);
-		FileOutputStream outputStream = null;
-		try {
-			outputStream = new FileOutputStream(fileNameWithPath);
-			for (int i = 0; i < peerState.getFileSplitMap().size(); i++) {
-				try {
-					outputStream.write(peerState.getFileSplitMap().get(i));
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		}
-		catch (FileNotFoundException e) {
-			e.printStackTrace();
-		}
-		finally {
-			try {
-				outputStream.flush();
-			}
-			catch (Exception ex){
-				ex.printStackTrace();
-			}
-		}
-	}
+    // Join pieces together and write to a file
+    public static void joinPiecesAndWriteFile(PeerInfo peerInfo) {
+        String filePath = System.getProperty("user.dir") + File.separatorChar + "btorrent/peer_" + peerInfo.getPeerId()
+                + File.separatorChar + ReadConfigFiles.fName;
+        System.out.println("Joining pieces and writing to file " + filePath);
+        FileOutputStream os = null;
+        try {
+            os = new FileOutputStream(filePath);
+            for (int i = 0; i < peerInfo.getFileSplitMap().size(); i++) {
+                try {
+                    os.write(peerInfo.getFileSplitMap().get(i));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                os.flush();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
 
-	public static void makeFilesAndDirectories(String peerId){
-		try {
-			String fileNameWithPath = System.getProperty("user.dir") + File.separatorChar + "btorrent/peer_" + peerId
-					+ File.separatorChar + ReadConfigFiles.fileName;
-			File createdFile = new File(fileNameWithPath);
-			createdFile.getParentFile().mkdirs();
-			createdFile.createNewFile();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
+    // Create necessary directories and files for a peer
+    public static void makeFilesAndDirectories(String peerId) {
+        try {
+            String filePath = System.getProperty("user.dir") + File.separatorChar + "btorrent/peer_" + peerId
+                    + File.separatorChar + ReadConfigFiles.fName;
+            File createdFile = new File(filePath);
+            createdFile.getParentFile().mkdirs();
+            createdFile.createNewFile();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }

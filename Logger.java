@@ -6,47 +6,64 @@ import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Map;
 
-/***
+/*
  * Logger utility class designed as Singleton to
  * avoid concurrency issues
  */
 public class Logger {
 
-	private static Map<String, Logger> map = new HashMap<>();
+	// Map to store unique loggers based on peer identifiers.
+    private static Map<String, Logger> loggerMap = new HashMap<>();
 
-	public PrintWriter printWriter = null;
+    // PrintWriter for writing log messages to a file.
+    public PrintWriter textPrinter = null;
 
-	private String peerId;
-
-	public static Logger getLogger(String peerId) {
+    // Peer's identifier for which the logger is created.
+    private String peerNodeIdentifier;
+	
+     /**
+     * Get a logger for a specific peer.
+     *
+     * @param peerNodeIdentifier Peer's unique identifier.
+     * @return Logger instance for the peer.
+     */
+	public static Logger getLogger(String peerNodeIdentifier) {
 		synchronized (Logger.class) {
-			if (map.get(peerId) == null) {
-				map.put(peerId, new Logger(peerId));
+			if (loggerMap.get(peerNodeIdentifier) == null) {
+				loggerMap.put(peerNodeIdentifier, new Logger(peerNodeIdentifier));
 			}
 		}
-		return map.get(peerId);
+		return loggerMap.get(peerNodeIdentifier);
 	}
 
 	/**
-	 * Constructor: Creates directories for logging
-	 * and initializes PrintWriter
-	 */
-	private Logger(String peerId) {
+     * Constructor: Creates directories for logging
+     * and initializes PrintWriter.
+     *
+     * @param peerNodeIdentifier Peer's unique identifier.
+     */
+	private Logger(String peerNodeIdentifier) {
 		try {
-			System.out.println("Logger instantiated for peer: "
-					+ peerId);
-			this.peerId = peerId;
-			File file = makeLogDirectoryForPeer(peerId);
+			System.out.println("Logger for peers has started: "
+					+ peerNodeIdentifier);
+			this.peerNodeIdentifier = peerNodeIdentifier;
+			File file = makeLogDirectoryForPeer(peerNodeIdentifier);
 			initPrintWriter(file);
 		}
 		catch (Exception ex) {
-			System.out.println("Exception "+ ex.getMessage());
+			System.out.println("Exception: "+ ex.getMessage());
 		}
 	}
+     /**
+     * Create the log directory for a peer based on its identifier.
+     *
+     * @param peerNodeIdentifier Peer's unique identifier.
+     * @return File object representing the log file.
+     * @throws Exception if an error occurs.
+     */
+	private File makeLogDirectoryForPeer(String peerNodeIdentifier) throws Exception{
 
-	private File makeLogDirectoryForPeer(String peerId) throws Exception{
-
-		String path = System.getProperty("user.dir") + File.separatorChar + "btorrent/log_peer_" + peerId
+		String path = System.getProperty("user.dir") + File.separatorChar + "btorrent/log_peer_" + peerNodeIdentifier
 				+ ".log";
 
 		File file = new File(path);
@@ -54,14 +71,23 @@ public class Logger {
 
 		return file;
 	}
-
+    /**
+     * Initialize the PrintWriter for writing log messages to a file.
+     *
+     * @param file File object representing the log file.
+     * @throws IOException if an error occurs during initialization.
+     */
 	private void initPrintWriter(File file) throws IOException{
 
 		file.createNewFile();
 		FileOutputStream fileOutputStream = new FileOutputStream(file, false);
-		printWriter = new PrintWriter(fileOutputStream, true);
+		textPrinter = new PrintWriter(fileOutputStream, true);
 	}
-
+    /**
+     * Get the current timestamp as a string.
+     *
+     * @return Timestamp string.
+     */
 	private String getTimeStamp() {
 
 		Timestamp timestamp = new Timestamp(System.currentTimeMillis());
@@ -71,18 +97,25 @@ public class Logger {
 	private void writeFile(String message) {
 
 		synchronized (this) {
-			printWriter.println(message);
+			textPrinter.println(message);
 		}
 	}
+
+	 /**
+     * Write a log message indicating that a peer received a 'have' message for a specific piece.
+     *
+     * @param fromId      Identifier of the peer from which the 'have' message is received.
+     * @param pieceIndex  Index of the piece.
+     */
 
 	public void logReceivedHaveMessage(String fromId, int pieceIndex) {
 
 		writeFile(getTimeStamp()
 				+ ": Peer "
-				+ peerId
-				+ " received the 'have' message from "
+				+ peerNodeIdentifier
+				+ " has obtained the 'have' message from "
 				+ fromId
-				+ " for the piece "
+				+ " for this piece "
 				+ pieceIndex + ".");
 	}
 
@@ -91,8 +124,8 @@ public class Logger {
 	public void logTcpConnectionTo(String toId) {
 		writeFile(getTimeStamp()
 				+ ": Peer "
-				+ peerId
-				+ " makes a connection to Peer "
+				+ peerNodeIdentifier
+				+ " has made the connection to Peer "
 				+ toId
 				+ ".");
 	}
@@ -100,8 +133,8 @@ public class Logger {
 	public void logTcpConnectionFrom(String fromId) {
 		writeFile(getTimeStamp()
 				+ ": Peer "
-				+ peerId
-				+ " is connected from Peer "
+				+ peerNodeIdentifier
+				+ " got its connection from Peer "
 				+ fromId
 				+ ".");
 	}
@@ -111,8 +144,8 @@ public class Logger {
 
 		writeFile(getTimeStamp()
 				+ ": Peer "
-				+ peerId
-				+ " has the optimistically unchoked neighbor "
+				+ peerNodeIdentifier
+				+ " now has the unchoked optimistic neighbor "
 				+ unchokedNeighbor
 				+ ".");
 	}
@@ -121,8 +154,8 @@ public class Logger {
 
 		writeFile(getTimeStamp()
 				+ ": Peer "
-				+ peerId
-				+ " is unchoked by "
+				+ peerNodeIdentifier
+				+ " is now unchoked by "
 				+ peerId1
 				+ ".");
 	}
@@ -131,8 +164,8 @@ public class Logger {
 
 		writeFile(getTimeStamp()
 				+ ": Peer "
-				+ peerId
-				+ " is choked by "
+				+ peerNodeIdentifier
+				+ " is now choked by "
 				+ peerId1
 				+ ".");
 	}
@@ -142,8 +175,8 @@ public class Logger {
 
 		writeFile(getTimeStamp()
 				+ ": Peer "
-				+ peerId
-				+ " received the 'interested' messaging from "
+				+ peerNodeIdentifier
+				+ " has obtained the 'interested' message from "
 				+ from
 				+ ".");
 	}
@@ -153,8 +186,8 @@ public class Logger {
 
 		writeFile(getTimeStamp()
 				+ ": Peer "
-				+ peerId
-				+ " received the 'not interested' messaging from "
+				+ peerNodeIdentifier
+				+ " has obtained the 'not interested' message from "
 				+ from
 				+ ".");
 	}
@@ -164,23 +197,26 @@ public class Logger {
 
 		writeFile(getTimeStamp()
 				+ ": Peer "
-				+ peerId
-				+ " has downloaded the piece "
+				+ peerNodeIdentifier
+				+ " has now installed the piece "
 				+ pieceIndex
 				+ " from "
 				+ from
 				+ "."
-				+ "Now the number of pieces it has is "
+				+ "The number of pieces it now has is "
 				+ numberOfPieces);
 
 	}
 
+	/**
+     * Write a log message indicating that a peer has completed downloading the entire file.
+     */
 	public void logDownloadComplete() {
 
 		writeFile(getTimeStamp()
 				+ "Peer "
-				+ peerId
-				+ " has downloaded the complete file.");
+				+ peerNodeIdentifier
+				+ " has now installed the complete file.");
 	}
 
 }
