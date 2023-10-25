@@ -6,64 +6,74 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.io.IOException;
 
-public class Execute implements Runnable{
-	private PeerInfo peerState;
-	private Logger logger;
+public class Execute implements Runnable {
+    private PeerInfo peerInfo;
+    private Logger logger;
 
-	public Execute(String peerId) {
-		ReadConfigFiles.setStateFromConfigFiles();
-		this.peerState = ReadConfigFiles.getPeerState(peerId);
-		this.logger = Logger.getLogger(peerId);
-	}
+    public Execute(String peerId) {
+        // Initialize the peer information and logger based on the peer ID
+        ReadConfigFiles.setStateFromConfigFiles();
+        this.peerInfo = ReadConfigFiles.getPeerState(peerId);
+        this.logger = Logger.getLogger(peerId);
+    }
 
-	public void init() {
-		FileManager.makeFilesAndDirectories(this.peerState.getPeerId());
-		if (peerState.isHasSharedFile()) {
-			System.out.println("Shared file found with :"+ peerState.getPeerId());
-			this.peerState.setFileSplitMap(FileManager.splitFile());
-		}
-		else {
-			this.peerState.setFileSplitMap(new ConcurrentHashMap<>());
-		}
-		System.out.println("Peer ID :"+ peerState.getPeerId());
-		System.out.println(peerState);
+    public void init() {
+        // Create necessary files and directories for the peer
+        FileManager.makeFilesAndDirectories(this.peerInfo.getPeerId());
 
-		// accept incoming connections
-		Thread t = new Thread(() -> IncomingPeers(peerState));
-		t.start();
+        if (peerInfo.isHasSharedFile()) {
+            // If the peer has a shared file, split the file into chunks
+            System.out.println("Shared file: " + peerInfo.getPeerId());
+            this.peerInfo.setFileSplitMap(FileManager.splitFile());
+        } else {
+            // If the peer does not have a shared file, initialize an empty map
+            this.peerInfo.setFileSplitMap(new ConcurrentHashMap<>());
+        }
 
-		try {
-			t.join();
-			System.out.println(this.peerState.getPeerId() + ": Exiting PeerProcessExecutor");
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-	}
+        // Display the peer's ID and information
+        System.out.println("Peer ID: " + peerInfo.getPeerId());
+        System.out.println(peerInfo);
 
-	public void run() {
-		init();
-	}
+        // Create a thread to handle incoming peer connections
+        Thread t = new Thread(() -> IncomingPeers(peerInfo));
+        t.start();
 
-    public void IncomingPeers(PeerInfo peerState)
-    {
+        try {
+            // Wait for the incoming peer handling thread to finish
+            t.join();
+            System.out.println(this.peerInfo.getPeerId() + ": Exiting Execute");
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void run() {
+        // Entry point for the Execute class
+        init();
+    }
+
+    public void IncomingPeers(PeerInfo peerInfo) {
         ServerSocket serverSocket = null;
         try {
-            serverSocket = new ServerSocket(peerState.getPort());
-            this.peerState.setServerSocket(serverSocket);
+            // Create a server socket to accept incoming connections
+            serverSocket = new ServerSocket(peerInfo.getPort());
+            this.peerInfo.setServerSocket(serverSocket);
+
             while (true) {
-                System.out.println("Peer Id " + peerState.getPeerId() + " accepting connections");
+                // Accept incoming client connections
                 Socket clientSocket = serverSocket.accept();
-                System.out.println("Connection is established to " + peerState.getPort() + " from " + clientSocket.getRemoteSocketAddress());
-                Thread t = new Thread(new HandlePeers(clientSocket, peerState));
+                System.out.println("Connection established to " + peerInfo.getPort() + " from " + clientSocket.getRemoteSocketAddress());
+
+                // Create a thread to handle the communication with the connected peer
+                Thread t = new Thread(new HandlePeers(clientSocket, peerInfo));
                 t.start();
             }
-        }
-        catch (Exception e) {
-
-            System.out.println(this.peerState.getPeerId() + ": Exiting IncomingConnectionHandler!");
-        }
-        finally {
+        } catch (Exception e) {
+            // Handle exceptions and display an error message
+            System.out.println(this.peerInfo.getPeerId() + ": Exiting IncomingPeers Function!");
+        } finally {
             try {
+                // Close the server socket
                 serverSocket.close();
             } catch (IOException e1) {
                 e1.printStackTrace();
