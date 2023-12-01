@@ -9,13 +9,13 @@ public class PieceMessage extends Message {
         this.reference = reference;
         
         // Set the message type to PIECE
-        super.setMessageType(MessageType.PIECE);
+        super.setTypeOfMessage(MessageType.PIECE);
         
         // Calculate and set the length of the message
-        super.setLength(5 + messageData.length);
+        super.setMessageSize(5 + messageData.length);
         
         // Set the payload (data) of the message, which is the actual piece data
-        super.setPayload(messageData);
+        super.setData(messageData);
     }
 
     // Get the index of the piece being sent

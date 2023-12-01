@@ -4,11 +4,11 @@ public class ChokeMessage extends Message {
     // Constructor for creating a Choke message
     public ChokeMessage(){
         // Call the constructor of the parent class (Message) with MessageType set to CHOKE
-        super.setMessageType(MessageType.CHOKE);
+        super.setTypeOfMessage(MessageType.CHOKE);
         // Set the length of the message (1 byte for message type, no payload)
-        super.setLength(1);
+        super.setMessageSize(1);
          // Since Choke message has no payload, set an empty string as the payload
-        super.setPayload("");
+        super.setData("");
     }
 
 }

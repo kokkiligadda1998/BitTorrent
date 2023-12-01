@@ -113,15 +113,15 @@ public class ReadConfigFiles {
 			while (scan.hasNextLine()) {
 				String arr[] = scan.nextLine().split(" ");
 				PeerInfo peersInfo = new PeerInfo();
-				peersInfo.setSequenceId(counter++);
-				peersInfo.setPeerId(arr[0]);
-				peersInfo.setHostName(arr[1]);
-				peersInfo.setPort(Integer.parseInt(arr[2]));
+				peersInfo.setSerialNumber(counter++);
+				peersInfo.setPeerIdentifier(arr[0]);
+				peersInfo.setDeviceName(arr[1]);
+				peersInfo.setExchangePort(Integer.parseInt(arr[2]));
 				if (arr[3].equals("1")) {
-					peersInfo.setHasSharedFile(true);
+					peersInfo.setFileShareFlag(true);
 				}
 				else {
-					peersInfo.setHasSharedFile(false);
+					peersInfo.setFileShareFlag(false);
 				}
 				peerMap.put(arr[0], peersInfo);
 			}
@@ -167,8 +167,8 @@ public class ReadConfigFiles {
      */
 	public static synchronized boolean hasAllPeersDownloadedFile() {
 		for (PeerInfo peerState: peerMap.values()) {
-			if (peerState.getBitField().nextClearBit(0) != numOfPieces) {
-				System.out.println(peerState.getPeerId() + " has incomplete file, so not exiting");
+			if (peerState.getItemBit().nextClearBit(0) != numOfPieces) {
+				System.out.println(peerState.getPeerIdentifier() + " has incomplete file, so not exiting");
 				return false;
 			}
 		}

@@ -44,15 +44,15 @@ public class FileManager {
 
     // Join pieces together and write to a file
     public static void joinPiecesAndWriteFile(PeerInfo peerInfo) {
-        String filePath = System.getProperty("user.dir") + File.separatorChar + "btorrent/peer_" + peerInfo.getPeerId()
+        String filePath = System.getProperty("user.dir") + File.separatorChar + "btorrent/peer_" + peerInfo.getPeerIdentifier()
                 + File.separatorChar + ReadConfigFiles.fName;
         System.out.println("Joining pieces and writing to file " + filePath);
         FileOutputStream os = null;
         try {
             os = new FileOutputStream(filePath);
-            for (int i = 0; i < peerInfo.getFileSplitMap().size(); i++) {
+            for (int i = 0; i < peerInfo.getFilePartitioning().size(); i++) {
                 try {
-                    os.write(peerInfo.getFileSplitMap().get(i));
+                    os.write(peerInfo.getFilePartitioning().get(i));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

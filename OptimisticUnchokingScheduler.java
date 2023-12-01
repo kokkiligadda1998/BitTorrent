@@ -15,8 +15,8 @@ public class OptimisticUnchokingScheduler extends TimerTask {
         System.out.println("checking the status for Task: start");
 
         // Check if there are no interested peers.
-        if (peerCondition.getInterestedNeighbours().isEmpty()) {
-            System.out.println("checking the status for Task: No interested peers for " + this.peerCondition.getPeerId());
+        if (peerCondition.getInterestedPeers().isEmpty()) {
+            System.out.println("checking the status for Task: No interested peers for " + this.peerCondition.getPeerIdentifier());
             return;
         }
 
@@ -24,9 +24,9 @@ public class OptimisticUnchokingScheduler extends TimerTask {
 
          // Iterate through interested peers to find choked neighbors.
 
-        for (String peerId: peerCondition.getInterestedNeighbours().values()) {
+        for (String peerId: peerCondition.getInterestedPeers().values()) {
             // Skip the current peer.
-            if (peerId.equals(peerCondition.getPeerId())) {
+            if (peerId.equals(peerCondition.getPeerIdentifier())) {
                 continue;
             }
             // Check if the peer is not a preferred neighbor (choked).
@@ -44,9 +44,9 @@ public class OptimisticUnchokingScheduler extends TimerTask {
         Collections.shuffle(chokedNeighbours);
         String optimisticUnchokedPeerId = chokedNeighbours.get(0);
          // Set the optimistic unchoked neighbor and send an unchoke message.      
-        peerCondition.setOptimisticUnchokedPeerId(optimisticUnchokedPeerId);
-        peerCondition.getConnections().get(optimisticUnchokedPeerId).sendMessage(new UnchokeMessage());
+        peerCondition.setUnchokedOptimisticNeighborID(optimisticUnchokedPeerId);
+        peerCondition.getPeerLinks().get(optimisticUnchokedPeerId).sendMessage(new UnchokeMessage());
          // Log the selection of the new optimistically unchoked neighbor.
-        Logger.getLogger(peerCondition.getPeerId()).logNewOptimisticallyUnchokedNeighbor(optimisticUnchokedPeerId);
+        Logger.getLogger(peerCondition.getPeerIdentifier()).logNewOptimisticallyUnchokedNeighbor(optimisticUnchokedPeerId);
     }
 }

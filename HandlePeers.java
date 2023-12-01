@@ -18,7 +18,7 @@ public class HandlePeers implements Runnable {
     public HandlePeers(Socket peerSocket, PeerInfo peerInfo) {
         this.peerSocket = peerSocket;
         this.peerInfo = peerInfo;
-        this.l = Logger.getLogger(peerInfo.getPeerId()); //// Initialize the logger with the current peer ID
+        this.l = Logger.getLogger(peerInfo.getPeerIdentifier()); //// Initialize the logger with the current peer ID
     }
 
     //// A setter method for setting the remote peer ID
@@ -33,16 +33,16 @@ public class HandlePeers implements Runnable {
             running = true; // Set the running flag to true
             outputstream = new ObjectOutputStream(peerSocket.getOutputStream()); // Initialize the output stream
 
-            sendMessage(new HandshakeMessage(this.peerInfo.getPeerId())); // Send a handshake message to the remote peer
+            sendMessage(new HandshakeMessage(this.peerInfo.getPeerIdentifier())); // Send a handshake message to the remote peer
 
             Message receivedMsg = null;
             while (running) { // While the connection is running
                 receivedMsg = receiveMessage(); // Receive a message from the remote peer
-                System.out.println(this.peerInfo.getPeerId() + ": Received message type: " +
-                        receivedMsg.getMessageType().name() + " from " + this.remotePID + ", message: " +
+                System.out.println(this.peerInfo.getPeerIdentifier() + ": Received message type: " +
+                        receivedMsg.getTypeOfMessage().name() + " from " + this.remotePID + ", message: " +
                         receivedMsg.toString()); // Print the message details
 
-                switch (receivedMsg.getMessageType()) { // Switch on the message type
+                switch (receivedMsg.getTypeOfMessage()) { // Switch on the message type
                     case HANDSHAKE: { // If the message is a handshake message
                         processHandshake(receivedMsg); // Process the handshake message
                         break;
@@ -83,7 +83,7 @@ public class HandlePeers implements Runnable {
                 }
             }
         } catch (Exception ex) {
-            System.out.println(this.peerInfo.getPeerId() + ": Exiting Handlepeers because of " + ex.getStackTrace()[0]);
+            System.out.println(this.peerInfo.getPeerIdentifier() + ": Exiting Handlepeers because of " + ex.getStackTrace()[0]);
             stop(); // Stop the connection if an exception occurs
         }
     }
@@ -92,13 +92,13 @@ public class HandlePeers implements Runnable {
 
         l.logInterestedMessageReceived(remotePID); // Log that an interested message was received
 
-        this.peerInfo.putInterestedNeighbours(remotePID); // Add the remote peer to the list of interested neighbours
+        this.peerInfo.putInterestedPeers(remotePID); // Add the remote peer to the list of interested neighbours
 
     }
 
     private void processNotInterested() {
         l.logNotInterestedMessageReceived(remotePID); // Log that a not interested message was received
-        this.peerInfo.removeInterestedNeighbours(remotePID); // Remove the remote peer from the list of interested
+        this.peerInfo.removeInterestedPeers(remotePID); // Remove the remote peer from the list of interested
                                                              // neighbours
         if (ReadConfigFiles.hasAllPeersDownloadedFile()) {
             stopAllConnections(); // Stop all connections if all peers have downloaded the file
@@ -108,9 +108,9 @@ public class HandlePeers implements Runnable {
     private void processBitField(Message msg) {
         BitFieldMessage bitFieldMsg = (BitFieldMessage) msg;
 
-        ReadConfigFiles.getPeers().get(remotePID).setBitField(bitFieldMsg.getPayload());
+        ReadConfigFiles.getPeers().get(remotePID).setItemBit(bitFieldMsg.getData());
 
-        int interestingPieceIndex = getNextInterestingPieceIndex(bitFieldMsg.getPayload(), this.peerInfo.getBitField());
+        int interestingPieceIndex = getNextInterestingPieceIndex(bitFieldMsg.getData(), this.peerInfo.getItemBit());
 
         if (interestingPieceIndex == -1) {
             NotInterestedMessage notInterestedMessage = new NotInterestedMessage();
@@ -124,14 +124,14 @@ public class HandlePeers implements Runnable {
 
     }
 
-    private void setDataRate(int size) {
+    private void setDataTransferSpeed(int size) {
         double dataRate;
         if (Math.abs(stopTime - startTime) > 0) {
             dataRate = size / (stopTime - startTime);
         } else {
             dataRate = 0;
         }
-        ReadConfigFiles.getPeers().get(remotePID).setDataRate(dataRate);
+        ReadConfigFiles.getPeers().get(remotePID).setDataTransferSpeed(dataRate);
     }
 
     // This method returns the index of the next interesting piece that the remote
@@ -146,19 +146,19 @@ public class HandlePeers implements Runnable {
     // This method processes the handshake message from the remote peer
     private void processHandshake(Message response) {
         HandshakeMessage hm = (HandshakeMessage) response; // Cast the message to a handshake message object
-        this.remotePID = hm.getPeerId(); // Get the peer ID from the handshake message
+        this.remotePID = hm.getPeerIdentifier(); // Get the peer ID from the handshake message
         if (ReadConfigFiles.getPeers().containsKey(remotePID)) { // If the peer ID is valid and present in the config file
             System.out.println(remotePID + " validated!"); // Print a validation message
         } else { // If the peer ID is invalid or not present in the config file
             System.out.println(remotePID + " invalid!"); // Print an invalidation message
             return; // Return from the method without further processing
         }
-        if (Integer.parseInt(this.peerInfo.getPeerId()) < Integer.parseInt(this.remotePID)) { // If the current peer ID is smaller than the remote peer ID
+        if (Integer.parseInt(this.peerInfo.getPeerIdentifier()) < Integer.parseInt(this.remotePID)) { // If the current peer ID is smaller than the remote peer ID
 
             l.logTcpConnectionFrom(this.remotePID); // Log that a TCP connection was established from the remote peer
-            this.peerInfo.getConnections().put(this.remotePID, this); // Add the remote peer and this handler to the connections map of the current peer
+            this.peerInfo.getPeerLinks().put(this.remotePID, this); // Add the remote peer and this handler to the connections map of the current peer
         }
-        BitFieldMessage bitfieldMsg = new BitFieldMessage(this.peerInfo.getBitField()); // Create a new bitfield message with the current peer's bitfield
+        BitFieldMessage bitfieldMsg = new BitFieldMessage(this.peerInfo.getItemBit()); // Create a new bitfield message with the current peer's bitfield
 
         sendMessage(bitfieldMsg); // Send the bitfield message to the remote peer
     }
@@ -175,7 +175,7 @@ public class HandlePeers implements Runnable {
     // This method sends a message to the remote peer using the output stream
     public synchronized void sendMessage(Message msg) {
         System.out.println(
-                this.peerInfo.getPeerId() + ": Sending " + msg.getMessageType().name() + " message: " + msg.toString()); // Print a message details before sending it                                                                                               
+                this.peerInfo.getPeerIdentifier() + ": Sending " + msg.getTypeOfMessage().name() + " message: " + msg.toString()); // Print a message details before sending it                                                                                               
         try {
             outputstream.writeObject(msg); // Write a message object to the output stream
             outputstream.flush(); // Flush the output stream to ensure that all bytes are sent
@@ -189,7 +189,7 @@ public class HandlePeers implements Runnable {
     // This method stops all connections with other peers by calling their stop
     // methods
     public void stopAllConnections() {
-        for (HandlePeers peerConnectionHandler : this.peerInfo.getConnections().values()) {
+        for (HandlePeers peerConnectionHandler : this.peerInfo.getPeerLinks().values()) {
             peerConnectionHandler.stop(); // Stop each connection handler in the connections map of the current peer
         }
     }
@@ -198,13 +198,13 @@ public class HandlePeers implements Runnable {
     // and setting running flag to false
     public void stop() {
         try {
-            System.out.println(this.peerInfo.getPeerId() + ": Stopping tasks");
+            System.out.println(this.peerInfo.getPeerIdentifier() + ": Stopping tasks");
             this.peerInfo.stopScheduledTasks(); // Stop any scheduled tasks for this connection handler
-            this.peerInfo.getServerSocket().close(); // Close the server socket for this connection handler
+            this.peerInfo.getConnectionListener().close(); // Close the server socket for this connection handler
             running = false; // Set running flag to false
             outputstream.close(); // Close output stream
             inputstream.close(); // Close input stream
-            System.out.println(this.peerInfo.getPeerId() + ": Stopped tasks");
+            System.out.println(this.peerInfo.getPeerIdentifier() + ": Stopped tasks");
         } catch (Exception e) {
             e.printStackTrace();
         }

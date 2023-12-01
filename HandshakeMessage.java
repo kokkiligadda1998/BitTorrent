@@ -11,7 +11,7 @@ public class HandshakeMessage extends Message {
     // Constructor for creating a Handshake message with a specific peer ID
     public HandshakeMessage(String peerId) {
         // Call the constructor of the parent class (Message) with MessageType set to HANDSHAKE
-        this.setMessageType(MessageType.HANDSHAKE);
+        this.setTypeOfMessage(MessageType.HANDSHAKE);
         // Set the peer ID for this handshake message
         this.peerId = peerId;
     }
@@ -23,7 +23,7 @@ public class HandshakeMessage extends Message {
     }
 
     // Getter method to retrieve the peer ID from the Handshake message
-    public String getPeerId(){
+    public String getPeerIdentifier(){
         return peerId;
     }
 

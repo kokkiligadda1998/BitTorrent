@@ -30,100 +30,100 @@ public class PeerInfo {
 
 
 	// Getters and setters for various attributes...
-	public String getOptimisticUnchokedPeerId() {
+	public String getUnchokedOptimisticNeighborID() {
 		return unchokedOptimisticNeighborID;
 	}
 
-	public void setOptimisticUnchokedPeerId(String unchokedOptimisticNeighborID) {
+	public void setUnchokedOptimisticNeighborID(String unchokedOptimisticNeighborID) {
 		this.unchokedOptimisticNeighborID = unchokedOptimisticNeighborID;
 	}
 
-	public boolean getDownloadComplete() {
+	public boolean getDownloadSuccessFlag() {
 		return downloadSuccessFlag.get();
 	}
 
-	public void setDownloadComplete(boolean value) {
+	public void setDownloadSuccessFlag(boolean value) {
 		this.downloadSuccessFlag.set(value);
 	}
 
-	public ConcurrentHashMap<String, HandlePeers> getConnections() {
+	public ConcurrentHashMap<String, HandlePeers> getPeerLinks() {
 		return peerLinks;
 	}
 
-	public ServerSocket getServerSocket() {
+	public ServerSocket getConnectionListener() {
 		return connectionListener;
 	}
 
-	public void setServerSocket(ServerSocket connectionListener) {
+	public void setConnectionListener(ServerSocket connectionListener) {
 		this.connectionListener = connectionListener;
 	}
 
-	public void setTimer1(Timer timeCounter1) {
+	public void setTimeCounter1(Timer timeCounter1) {
 		this.timeCounter1 = timeCounter1;
 	}
 
-	public void setTimer2(Timer timeCounter2) {
+	public void setTimeCounter2(Timer timeCounter2) {
 		this.timeCounter2 = timeCounter2;
 	}
 
 	public void stopScheduledTasks() {
-		System.out.println(getPeerId() + ": stopping scheduler tasks");
+		System.out.println(getPeerIdentifier() + ": stopping scheduler tasks");
 		timeCounter1.cancel();
 		timeCounter1.purge();
 		timeCounter2.cancel();
 		timeCounter2.purge();
 	}
 
-	public void setInterestedNeighbours(Map<String, String> interestedPeers) {
+	public void setInterestedPeers(Map<String, String> interestedPeers) {
 		this.interestedPeers = interestedPeers;
 	}
 
-	public double getDataRate() {
+	public double getDataTransferSpeed() {
 		return dataTransferSpeed;
 	}
 
-	public void setDataRate(double dataTransferSpeed) {
+	public void setDataTransferSpeed(double dataTransferSpeed) {
 		this.dataTransferSpeed = dataTransferSpeed;
 	}
 
-	public BlockingQueue<Message> getQueue(){
+	public BlockingQueue<Message> getWaitingList(){
 		return waitingList;
 	}
 
-	public synchronized void putFileSplitMap(int index, byte[] piece) {
+	public synchronized void putFilePartitioning(int index, byte[] piece) {
 		this.filePartitioning.put(index, piece);
 		this.itemBit.set(index);
 	}
 
-	public Map<String, String> getInterestedNeighbours() {
+	public Map<String, String> getInterestedPeers() {
 		return interestedPeers;
 	}
 
-	public int preferredNeighboursCount(){
+	public int getSelectedPeersSize(){
 		return selectedPeers.size();
 	}
 
-	public void removeInterestedNeighbours(String peerIdentifier) {
+	public void removeInterestedPeers(String peerIdentifier) {
 		interestedPeers.remove(peerIdentifier);
 	}
 
-	public void putInterestedNeighbours(String peerIdentifier) {
+	public void putInterestedPeers(String peerIdentifier) {
 		this.interestedPeers.put(peerIdentifier, peerIdentifier);
 	}
 
-	public void putPreferredNeighbours(String peerIdentifier) {
+	public void putPreferredPeers(String peerIdentifier) {
 		selectedPeers.put(peerIdentifier, peerIdentifier);
 	}
 
-	public void setBitField(BitSet itemBit) {
+	public void setItemBit(BitSet itemBit) {
 		this.itemBit = itemBit;
 	}
 
-	public ConcurrentHashMap<Integer, byte[]> getFileSplitMap() {
+	public ConcurrentHashMap<Integer, byte[]> getFilePartitioning() {
 		return filePartitioning;
 	}
 
-	public void setFileSplitMap(ConcurrentHashMap<Integer, byte[]> filePartitioning) {
+	public void setFilePartitioning(ConcurrentHashMap<Integer, byte[]> filePartitioning) {
 		this.filePartitioning = filePartitioning;
 	}
 
@@ -135,39 +135,39 @@ public class PeerInfo {
 		this.selectedPeers = selectedPeers;
 	}
 
-	public BitSet getBitField() {
+	public BitSet getItemBit() {
 		return itemBit;
 	}
 
-	public String getPeerId() {
+	public String getPeerIdentifier() {
 		return peerIdentifier;
 	}
 
-	public String getHostName() {
+	public String getDeviceName() {
 		return deviceName;
 	}
 
-	public int getPort() {
+	public int getExchangePort() {
 		return exchangePort;
 	}
 
-	public boolean isHasSharedFile() {
+	public boolean FileShareFlag() {
 		return fileShareFlag;
 	}
 
-	public void setPeerId(String peerIdentifier) {
+	public void setPeerIdentifier(String peerIdentifier) {
 		this.peerIdentifier = peerIdentifier;
 	}
 
-	public void setHostName(String deviceName) {
+	public void setDeviceName(String deviceName) {
 		this.deviceName = deviceName;
 	}
 
-	public void setPort(int exchangePort) {
+	public void setExchangePort(int exchangePort) {
 		this.exchangePort = exchangePort;
 	}
 
-	public void setHasSharedFile(boolean fileShareFlag) {
+	public void setFileShareFlag(boolean fileShareFlag) {
 		if (fileShareFlag) {
 			if (this.itemBit == null) {
 				this.itemBit = new BitSet(ReadConfigFiles.getNumberOfPieces());
@@ -178,7 +178,7 @@ public class PeerInfo {
 		this.fileShareFlag = fileShareFlag;
 	}
 
-	public boolean isFileReceived() {
+	public boolean isReceivedFileFlag() {
 		return receivedFileFlag;
 	}
 
@@ -186,11 +186,11 @@ public class PeerInfo {
 		this.receivedFileFlag = receivedFileFlag;
 	}
 
-	public int getSequenceId() {
+	public int getSerialNumber() {
 		return serialNumber;
 	}
 
-	public void setSequenceId(int serialNumber) {
+	public void setSerialNumber(int serialNumber) {
 		this.serialNumber = serialNumber;
 	}
 // Constructor to initialize the peer's information.
